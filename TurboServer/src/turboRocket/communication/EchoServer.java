@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import dto.GameState;
+import dto.GameState.PlayerData;
 import dto.KeyPressData;
 
 
@@ -14,8 +15,11 @@ public class EchoServer implements Runnable{
 
 	int port = 5151;
 	ServerSocket ss = null;
+	private volatile GameState gameState;
 
-
+	public EchoServer() {
+		gameState = GameState.getDefaultGameState();
+	}
 
 	@Override
 	public void run() {
@@ -34,12 +38,20 @@ public class EchoServer implements Runnable{
 					try {
 						System.out.println("Server waiting for data");
 						kpd = (KeyPressData) objectInStream.readObject();
-						System.out.println("Data received");
+						System.out.println("Data received:" + kpd);
+						for (PlayerData p : gameState.getPlayers().values()){
+							//Testing....
+							System.out.println(p.name + " " + p.health);
+							gameState.getPlayers().get(p.sessionID).health--;
+							System.out.println(gameState.getPlayers().get(p.sessionID).health);
+							
+						}
 					} catch (ClassNotFoundException e) {
 						System.err.println("Error reading KeyPressData:" + kpd);
 					}
 					System.out.println(kpd);
-					objectOutputStream.writeObject(new GameState());
+					objectOutputStream.writeObject(gameState);
+					objectOutputStream.reset();
 					System.out.println("Wrote Gamestate");
 				}
 
